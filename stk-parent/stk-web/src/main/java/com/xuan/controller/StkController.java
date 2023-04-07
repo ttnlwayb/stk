@@ -32,6 +32,7 @@ public class StkController {
 		Date date = new Date();
 		date.setTime(date.getTime() - (60 *60 * 24 * 1000));
 		YesterDayStr = SDF1.format(date) + "1330";
+		//YesterDayStr = "202303311330";
 	}
 
     @GetMapping("/show")
@@ -59,19 +60,31 @@ public class StkController {
 	        	row.append("[" + stkCode + "] " + "[" + stkName + "] ");
 	        	row.append(map.toString() + "</p><p>");
 	        	JSONObject yesterdayEndJson = null;
+	        	int minI = array.length() - 1;
+	        	double minL = 9999;
 	    		for (int i = array.length() - 1; i > 0; i--) {
+	    			JSONObject json = array.getJSONObject(i);
+	    			if ((array.length() - i < 7) && json.getDouble("l") < minL) {
+	    				minI = i;
+	    				minL = json.getDouble("l");
+	    			}
 	    			if (YesterDayStr.equals("" + array.getJSONObject(i).getLong("t"))) {
 	    				yesterdayEndJson = array.getJSONObject(i);
 	    				break;
 	    			}
 	    		}
+	    		array.getJSONObject(minI).put("minL", "true");
         		for (int i = array.length() - 1; i > 0; i--) {
     	        	JSONObject pre = array.getJSONObject(i - 1);
         			JSONObject json = array.getJSONObject(i);
         			if (!("" + json.getLong("t")).startsWith(TodayStr)) {
         				continue;
         			}
-        			row.append(pack(yesterdayEndJson, pre, json) + "	");
+        			try {
+            			row.append(pack(yesterdayEndJson, pre, json) + "	");
+        			} catch (Exception e) {
+        				continue;
+        			}
         		}
 	        	row.append("</b></p></pre>");
 	    		sb.append(row.toString());
@@ -99,7 +112,13 @@ public class StkController {
 			c = "<font color='#00DD00'>"  + c + "("+ diffStr + ")</font>";
 		}
 		String v = "" + json.getDouble("v");
-		if (json.getDouble("v") > 1000.0 ) {
+		if (json.getDouble("c") < pre.getDouble("c")) {
+			if (json.has("minL")) {
+				v = "<font size='5px' color='#00DD00'>"  + v + "</font>";
+			} else {
+				v = "<font color='#00DD00'>"  + v + "</font>";
+			}
+		} else if (json.getDouble("v") > 1000.0 ) {
 			v = "<font color='#BB5500'>"  + v + "</font>";
 		}
 
