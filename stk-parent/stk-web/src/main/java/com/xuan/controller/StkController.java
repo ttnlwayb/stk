@@ -1,6 +1,11 @@
 package com.xuan.controller;
 
+import java.io.File;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -8,9 +13,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -28,19 +35,22 @@ public class StkController {
 	SimpleDateFormat SDF1 = new SimpleDateFormat ("yyyyMMdd");
     DecimalFormat DF = new DecimalFormat("###,##0.0000");
     DecimalFormat DF1 = new DecimalFormat("###,##0.00");
+    NumberFormat NF = NumberFormat.getPercentInstance();
 	String TodayStr = SDF1.format(new Date());
+	String JsonText = "";
 	{
-		TodayStr = "20230407";
+		//TodayStr = "20230407";
+		try {
+			File file = ResourceUtils.getFile("classpath:StkCodes.json");
+	        InputStream in = new FileInputStream(file);
+            JsonText = IOUtils.toString(in, "UTF-8");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
-	
     @GetMapping("/table")
     public ModelAndView table(Map<String, Object> model) {
-        //model.put("message", "table");
-    	JSONObject stkcodes = new JSONObject(Constants.StkCodes);
-    	StringBuilder sb = new StringBuilder();
-    	sb.append("<p>" + SDF.format(new Date()) + "</p>");
-    	JSONObject res = new JSONObject("{'data': []}");
-    	JSONArray resArray = res.getJSONArray("data");
+    	JSONObject stkcodes = new JSONObject(JsonText);
     	for (String groupName : stkcodes.keySet()) {
     		JSONArray stkArray = stkcodes.getJSONArray(groupName);
     		for (int stkIdx = 0; stkIdx < stkArray.length(); stkIdx++) {
@@ -53,6 +63,17 @@ public class StkController {
     			} catch (Exception e) {
     				continue;
     			}
+	    		for (int i = array.length() - 1; i > 0; i--) {
+	    			JSONObject json = array.getJSONObject(i);
+	    			if (!("" + array.getJSONObject(i).getLong("t")).startsWith(TodayStr)) {
+	    				JSONObject lastJson = array.getJSONObject(array.length()  - 1);
+	    				JSONObject yesterdayEndJson = array.getJSONObject(i);
+	    				double change = lastJson.getDouble("c") / yesterdayEndJson.getDouble("c") - 1;
+	    				stkJson.put("c",  NF.format(change));
+	    				break;
+	    			}
+	    		}
+	    		
     			int count = 12;
             	JSONArray rowArray = new JSONArray();
             	rowArray.put(stkCode + "-" + stkName);
@@ -66,14 +87,15 @@ public class StkController {
 	    			rowArray.put("" + json.getDouble("c") + "(" + json.getDouble("v") + ")");
 	    		}
 	    		while (rowArray.length() < 13) {
-	    			rowArray.put(rowArray.get(rowArray.length() - 1));
+	    			rowArray.put("");
 	    		}
-	    		resArray.put(rowArray);
+	    		stkJson.put("d", rowArray);
     		}
     	}
-        model.put("result", res.toString());
+        model.put("result", stkcodes.toString());
         return new ModelAndView("stk");
     }
+
     @GetMapping("/show")
     public String show() {
     	JSONObject stkcodes = new JSONObject(Constants.StkCodes);
@@ -129,7 +151,7 @@ public class StkController {
 	    		sb.append(row.toString());
     		}
     	}
-		sb.append("<script>setTimeout(() => location.reload(), 1000 * 1000);</script>");
+		sb.append("<script>setTimeout(() => location.reload(), 20 * 1000);</script>");
         return sb.toString();
     }
     
