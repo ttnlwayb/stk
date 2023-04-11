@@ -48,6 +48,56 @@ public class StkController {
 			e.printStackTrace();
 		}
 	}
+	
+    @GetMapping("/chart")
+    public ModelAndView chart(Map<String, Object> model) {
+    	JSONObject stkcodes = new JSONObject(JsonText);
+    	for (String groupName : stkcodes.keySet()) {
+    		JSONArray stkArray = stkcodes.getJSONArray(groupName);
+    		for (int stkIdx = 0; stkIdx < stkArray.length(); stkIdx++) {
+    			JSONObject stkJson = stkArray.getJSONObject(stkIdx);
+    			String stkCode = stkJson.getString("i");
+    			String stkName = stkJson.getString("n");
+				JSONArray array = null;
+    			try {
+    				array = stkService.find(stkCode);
+    			} catch (Exception e) {
+    				continue;
+    			}
+    			JSONObject yesterdayEndJson = null;
+	    		for (int i = array.length() - 1; i > 0; i--) {
+	    			JSONObject json = array.getJSONObject(i);
+	    			if (!("" + array.getJSONObject(i).getLong("t")).startsWith(TodayStr)) {
+	    				JSONObject lastJson = array.getJSONObject(array.length()  - 1);
+	    				yesterdayEndJson = array.getJSONObject(i);
+	    				break;
+	    			}
+	    		}
+	    		
+    			int count = 12;
+            	JSONArray rowArray = new JSONArray();
+            	rowArray.put(stkCode + "-" + stkName);
+	    		for (int i = array.length() - 1; i > 0 && count > 0; i--) {
+	    			if (!("" + array.getJSONObject(i).getLong("t")).startsWith(TodayStr)) {
+	    				break;
+	    			}
+	    			count--;
+	    			JSONObject json = array.getJSONObject(i);
+	    			String c = "" + json.getDouble("c");
+	    			double d = (json.getDouble("c") / yesterdayEndJson.getDouble("c")) - 1;
+	    			d *= 100;
+	    			d = Math.round(d * 10.0) / 10.0;
+	    			rowArray.put(d);
+	    		}
+	    		while (rowArray.length() < 13) {
+	    			rowArray.put("");
+	    		}
+	    		stkJson.put("d", rowArray);
+    		}
+    	}
+        model.put("result", stkcodes.toString());
+        return new ModelAndView("chart");
+    }
     @GetMapping("/table")
     public ModelAndView table(Map<String, Object> model) {
     	JSONObject stkcodes = new JSONObject(JsonText);
