@@ -8,6 +8,7 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -23,12 +24,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.xuan.service.log.LogService;
 import com.xuan.service.stk.StkService;
+
 
 @RestController
 @RequestMapping("/stk")
 public class StkController {
-
+	
+	@Autowired
+	private LogService logService;
 	@Autowired
 	private StkService stkService;
 	SimpleDateFormat SDF = new SimpleDateFormat ("yyyy-MM-dd hh:mm:ss");
@@ -37,6 +42,7 @@ public class StkController {
     DecimalFormat DF1 = new DecimalFormat("###,##0.00");
     NumberFormat NF = NumberFormat.getPercentInstance();
 	String TodayStr = SDF1.format(new Date());
+	String TodayTimeStr = SDF.format(new Date());
 	String JsonText = "";
 	{
 		//TodayStr = "20230407";
@@ -100,6 +106,8 @@ public class StkController {
     }
     @GetMapping("/table")
     public ModelAndView table(Map<String, Object> model) {
+    	int[] mins = new int[12]; 
+    	int[] maxs = new int[12]; 
     	JSONObject stkcodes = new JSONObject(JsonText);
     	for (String groupName : stkcodes.keySet()) {
     		JSONArray stkArray = stkcodes.getJSONArray(groupName);
@@ -127,21 +135,40 @@ public class StkController {
     			int count = 12;
             	JSONArray rowArray = new JSONArray();
             	rowArray.put(stkCode + "-" + stkName);
+            	List<Double> doubleList = new ArrayList();
 	    		for (int i = array.length() - 1; i > 0 && count > 0; i--) {
 	    			if (!("" + array.getJSONObject(i).getLong("t")).startsWith(TodayStr)) {
 	    				break;
+	    			}
+	    			if (array.getJSONObject(i).getLong("t") > 202304120955L) {
+	    				//continue;
 	    			}
 	    			count--;
 	    			JSONObject json = array.getJSONObject(i);
 	    			String c = "" + json.getDouble("c");
 	    			rowArray.put("" + json.getDouble("c") + "(" + json.getDouble("v") + ")");
+	    			doubleList.add(json.getDouble("c"));
 	    		}
+	    		int minIdx = 0;
+	    		int maxIdx = 0;
+	    		for (int i = 1; i < doubleList.size(); i++) {
+	    			if (doubleList.get(minIdx) > doubleList.get(i)) {
+	    				minIdx = i;
+	    			}
+	    			if (doubleList.get(maxIdx) < doubleList.get(i)) {
+	    				maxIdx = i;
+	    			}
+	    		}
+	    		mins[minIdx]++;
+	    		maxs[maxIdx]++;
 	    		while (rowArray.length() < 13) {
 	    			rowArray.put("");
 	    		}
 	    		stkJson.put("d", rowArray);
     		}
     	}
+		logService.info("[mins]: " +Arrays.toString(mins));
+		logService.warn("[maxs]: " +Arrays.toString(maxs));
         model.put("result", stkcodes.toString());
         return new ModelAndView("stk");
     }

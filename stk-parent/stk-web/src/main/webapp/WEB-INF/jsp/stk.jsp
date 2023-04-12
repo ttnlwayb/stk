@@ -18,10 +18,11 @@
 <style>
 td {
 	white-space: nowrap;
+	width: 178px;
 }
 
 </style>
-<div id='mainDiv' style='width: 80%'></div>
+<div id='mainDiv' style='width: 100%'></div>
 <div id='tmpDiv' style='display: none'>
 	<label id='lab'><label>
 			<table id="table">
@@ -49,6 +50,7 @@ td {
 <div id="divDialog" />
 
 <script>
+var stkcount = 0;
 var notices = [];
 console.log('DataTable');
 var result = ${result};
@@ -64,6 +66,7 @@ function initData() {
 		cloneTable.appendTo('#mainDiv');
 		var rows = [];
 		for (var i = 0; i < result[item].length; i++) {
+			stkcount++;
 			result[item][i]['d'][0] += '(' + result[item][i]['c'] + ')';
 			rows[i] = result[item][i]['d'];
 		}
@@ -99,9 +102,11 @@ function RowCallBack(row, data, index) {
     	}
     );
     vclone[0] = 0;
+    if (vclone[1] > 1000) {
+		notices.push(stk);
+    }
     vclone.forEach(function (item, index) {
     	if (item > 1000) {
-    		notices.push(stk);
     	    $('td', row).eq(index).css("background-color", "#BBFFFF");
     	}
 	});
@@ -113,6 +118,7 @@ function messageDialog() {
 		return;
 	}
 	$("#divDialog").html(notices.join('<br/>'));
+	notices.length = 0;
 	$( "#divDialog" ).dialog({
 	    buttons: {
 	        "Ok": function() {
@@ -127,13 +133,13 @@ function messageDialog() {
 
 $(document).ready(function() {
 	initData();
+	messageDialog();
 	var date = new Date();
 	if (date.getHours() < 13) {
 		setTimeout(() => location.reload(), 15 * 1000);
 	} else if (date.getHours() == 13 &&　date.getMinutes() < 25) {
 		setTimeout(() => location.reload(), 15 * 1000);
 	}
-	messageDialog();
 });
 
 </script>

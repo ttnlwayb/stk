@@ -1,0 +1,14 @@
+
+stk-parent/stk-web/.settings/org.eclipse.core.resources.prefs
+*.prefs
+stk-parent/stk-service/.classpath
+stk-parent/stk-web/.project
+*.component
+*.name
+*.container
+stk-parent/stk-web/.settings/org.eclipse.wst.common.project.facet.core.xml
+stk-parent/stk-web/.settings/.jsdtscope
+stk-parent/stk-service/.settings/org.eclipse.wst.common.project.facet.core.xml
+stk-parent/stk-web/.classpath
+stk-parent/stk-service/.project
+stk-parent/.project

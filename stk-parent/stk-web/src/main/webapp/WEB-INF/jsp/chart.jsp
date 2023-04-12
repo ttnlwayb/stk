@@ -10,7 +10,7 @@
 <style>
 </style>
 </head>
-<body>
+<body bgcolor="#DDDDDD">
 <div id='mainDiv' style='width:80%'></div>
 <div id='tmpDiv' style='display: none'>
 	<label id='lab'><label>
