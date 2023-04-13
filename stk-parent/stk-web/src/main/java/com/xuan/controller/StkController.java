@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -44,10 +46,12 @@ public class StkController {
 	String TodayStr = SDF1.format(new Date());
 	String TodayTimeStr = SDF.format(new Date());
 	String JsonText = "";
-	{
+
+	@PostConstruct
+	public void init() {
 		//TodayStr = "20230407";
 		try {
-			File file = ResourceUtils.getFile("classpath:StkCodes.json");
+			File file = ResourceUtils.getFile("classpath:stk50.json");
 	        InputStream in = new FileInputStream(file);
             JsonText = IOUtils.toString(in, "UTF-8");
 		} catch (Exception e) {
@@ -106,8 +110,6 @@ public class StkController {
     }
     @GetMapping("/table")
     public ModelAndView table(Map<String, Object> model) {
-    	int[] mins = new int[12]; 
-    	int[] maxs = new int[12]; 
     	JSONObject stkcodes = new JSONObject(JsonText);
     	for (String groupName : stkcodes.keySet()) {
     		JSONArray stkArray = stkcodes.getJSONArray(groupName);
@@ -135,7 +137,6 @@ public class StkController {
     			int count = 12;
             	JSONArray rowArray = new JSONArray();
             	rowArray.put(stkCode + "-" + stkName);
-            	List<Double> doubleList = new ArrayList();
 	    		for (int i = array.length() - 1; i > 0 && count > 0; i--) {
 	    			if (!("" + array.getJSONObject(i).getLong("t")).startsWith(TodayStr)) {
 	    				break;
@@ -147,28 +148,14 @@ public class StkController {
 	    			JSONObject json = array.getJSONObject(i);
 	    			String c = "" + json.getDouble("c");
 	    			rowArray.put("" + json.getDouble("c") + "(" + json.getDouble("v") + ")");
-	    			doubleList.add(json.getDouble("c"));
 	    		}
-	    		int minIdx = 0;
-	    		int maxIdx = 0;
-	    		for (int i = 1; i < doubleList.size(); i++) {
-	    			if (doubleList.get(minIdx) > doubleList.get(i)) {
-	    				minIdx = i;
-	    			}
-	    			if (doubleList.get(maxIdx) < doubleList.get(i)) {
-	    				maxIdx = i;
-	    			}
-	    		}
-	    		mins[minIdx]++;
-	    		maxs[maxIdx]++;
+
 	    		while (rowArray.length() < 13) {
 	    			rowArray.put("");
 	    		}
 	    		stkJson.put("d", rowArray);
     		}
     	}
-		logService.info("[mins]: " +Arrays.toString(mins));
-		logService.warn("[maxs]: " +Arrays.toString(maxs));
         model.put("result", stkcodes.toString());
         return new ModelAndView("stk");
     }

@@ -130,15 +130,15 @@ function messageDialog() {
 		}
 	});
 }
-
+var waittime = 19;
 $(document).ready(function() {
 	initData();
-	messageDialog();
+	//messageDialog();
 	var date = new Date();
 	if (date.getHours() < 13) {
-		setTimeout(() => location.reload(), 15 * 1000);
+		setTimeout(() => location.reload(), waittime * 1000);
 	} else if (date.getHours() == 13 &&　date.getMinutes() < 25) {
-		setTimeout(() => location.reload(), 15 * 1000);
+		setTimeout(() => location.reload(), waittime * 1000);
 	}
 });
 
