@@ -19,7 +19,8 @@ public class StkServiceImpl implements StkService {
 	final String stkUrl = "https://tw.quote.finance.yahoo.net/quote/q?type=ta&perd=5m&mkt=10&v=1&sym=";
 	final String stkPerdUrl = "https://tw.quote.finance.yahoo.net/quote/q?type=ta&mkt=10&v=1&sym=";
 	
-	final String wtxUrl = "https://tw.screener.finance.yahoo.net/future/q?type=ta&perd=10m&mkt=01&sym=";
+	final String wtxUrl = "https://tw.screener.finance.yahoo.net/future/q?type=ta&perd=5m&mkt=01&sym=";
+	final String wtxPerUrl = "https://tw.screener.finance.yahoo.net/future/q?type=ta&mkt=01&sym=";
 	ConcurrentHashMap<String, Long> CacheTime = new ConcurrentHashMap();
 	ConcurrentHashMap<String, JSONArray> CacheJSONArray = new ConcurrentHashMap();
 	long _19s = 19 * 1000;
@@ -53,7 +54,7 @@ public class StkServiceImpl implements StkService {
 		}
 		String url = stkPerdUrl + stkCode + "&perd=" + perd + "&nocache=" + System.currentTimeMillis();
 		if (stkCode.startsWith("WTX")) {
-			url = wtxUrl + stkCode + "&nocache=" + System.currentTimeMillis();
+			url = wtxPerUrl + stkCode  + "&perd=" + perd + "&nocache=" + System.currentTimeMillis();
 		}
 		String data = reptile.doReptile(url);
 		data = data.substring(5);
