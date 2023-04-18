@@ -51,7 +51,7 @@ public class StkController {
 	public void init() {
 		//TodayStr = "20230407";
 		try {
-			File file = ResourceUtils.getFile("classpath:stk50.json");
+			File file = ResourceUtils.getFile("classpath:Stk50.json");
 	        InputStream in = new FileInputStream(file);
             JsonText = IOUtils.toString(in, "UTF-8");
 		} catch (Exception e) {

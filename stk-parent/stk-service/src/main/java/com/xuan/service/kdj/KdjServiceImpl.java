@@ -57,6 +57,7 @@ public class KdjServiceImpl implements KdjService {
      * @param value rsi的参数(6,12,24等)
      * @return
      */
+	@Override
     public double[] rsi(int value, List<Double> list) {
         // 收盘价
         double[] inClose = new double[list.size()];

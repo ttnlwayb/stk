@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +40,7 @@ public class serviceTest {
 	}
 	
 	@Test
-	public void stkTest1() {
+	public void stkTest1() throws JSONException {
 		SimpleDateFormat SDF1 = new SimpleDateFormat ("yyyyMMdd");
 		String TodayStr = SDF1.format(new Date());
 		JSONArray array = stkService.find("WTX00", "5m");

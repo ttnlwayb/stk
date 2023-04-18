@@ -1,17 +1,23 @@
 package com.xuan.controller;
 
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.xuan.service.kdj.KdjService;
 import com.xuan.service.stk.StkService;
@@ -26,6 +32,10 @@ public class KdjController {
 	@Autowired
 	private KdjService kdjService;
 	
+	SimpleDateFormat SDF = new SimpleDateFormat ("yyyyMMddhhmm");
+	SimpleDateFormat SDF1 = new SimpleDateFormat ("yyyyMMdd");
+	String TodayStr = SDF1.format(new Date());
+
     DecimalFormat DF = new DecimalFormat("###,##0.0");
     @GetMapping("/show")
     public String show() {
@@ -64,6 +74,115 @@ public class KdjController {
     	}
 
     	return sb.toString();
+    }
+    @GetMapping("/one/{stkCode}")
+    public ModelAndView one(Map<String, Object> model, @PathVariable String stkCode) {
+    	return one(model, stkCode, 999999999999L);
+    }
+    @GetMapping("/one/{stkCode}/{endtime}")
+    public ModelAndView one(Map<String, Object> model, @PathVariable String stkCode, @PathVariable long endtime) {
+    	JSONArray array = stkService.find(stkCode);
+    	int size = 0;
+    	List<Double> hights = new ArrayList();
+    	List<Double> lows = new ArrayList();
+    	List<Double> closes = new ArrayList();
+    	List<Long> times = new ArrayList();
+    	for (int i = array.length() - 1; i > -1 && size++ < 120; i--) {
+    		JSONObject json = array.getJSONObject(i);
+    		if (json.getLong("t") > endtime) {
+    			continue;
+    		}
+    		hights.add(0, json.getDouble("h"));
+    		lows.add(0, json.getDouble("l"));
+    		closes.add(0, json.getDouble("c"));
+    		times.add(0, json.getLong("t"));
+    	}
+    	List<double[]> res = kdjService.kdj(hights, lows, closes);
+    	JSONArray arrk = new JSONArray();
+    	JSONArray arrd = new JSONArray();
+    	JSONArray arrj = new JSONArray();
+    	JSONArray arrt = new JSONArray();
+    	JSONObject json = new JSONObject();
+    	for (int i = 0; i < res.get(0).length; i++) {
+    		if (times.get(i + 16) < 202304140859L) {
+    			//continue;
+    		}
+    		if (times.get(i + 16) > endtime) {
+    			continue;
+    		}
+    		arrk.put(res.get(0)[i]);
+    		arrd.put(res.get(1)[i]);
+    		arrj.put(res.get(2)[i]);
+    		arrt.put(times.get(i + 16));
+    	}
+    	json.put("k", arrk);
+    	json.put("d", arrd);
+    	json.put("j", arrj);
+    	json.put("t", arrt);
+    	model.put("result", json.toString());
+        return new ModelAndView("kdj");    	
+    }
+    
+    @GetMapping("/one/MinCounts/{stkCode}")
+    public ModelAndView oneAndMinCounts(Map<String, Object> model, @PathVariable String stkCode) {
+    	JSONArray array = stkService.find(stkCode);
+    	int size = 0;
+    	List<Double> hights = new ArrayList();
+    	List<Double> lows = new ArrayList();
+    	List<Double> closes = new ArrayList();
+    	List<Long> times = new ArrayList();
+    	for (int i = array.length() - 1; i > -1 && size++ < 120; i--) {
+    		JSONObject json = array.getJSONObject(i);
+    		hights.add(0, json.getDouble("h"));
+    		lows.add(0, json.getDouble("l"));
+    		closes.add(0, json.getDouble("c"));
+    		times.add(0, json.getLong("t"));
+    	}
+    	List<double[]> res = kdjService.kdj(hights, lows, closes);
+    	JSONArray arrk = new JSONArray();
+    	JSONArray arrd = new JSONArray();
+    	JSONArray arrj = new JSONArray();
+    	JSONArray arrt = new JSONArray();
+    	JSONObject json = new JSONObject("{kdj:{}, min:{}, max:{}}");
+    	for (int i = 0; i < res.get(0).length; i++) {
+    		if (times.get(i + 16) < 202304140859L) {
+    			//continue;
+    		}
+    		arrk.put(res.get(0)[i]);
+    		arrd.put(res.get(1)[i]);
+    		arrj.put(res.get(2)[i]);
+    		arrt.put(times.get(i + 16));
+    	}
+    	json.getJSONObject("kdj").put("k", arrk);
+    	json.getJSONObject("kdj").put("d", arrd);
+    	json.getJSONObject("kdj").put("j", arrj);
+    	json.getJSONObject("kdj").put("t", arrt);
+    	
+		ConcurrentHashMap<Long, int[]> cacheMinCounts = stkService.getCacheMinCounts();
+		ConcurrentHashMap<Long, int[]> cacheMaxCounts = stkService.getCacheMaxCounts();
+    	JSONArray arrl = new JSONArray();
+    	JSONArray arrn = new JSONArray();
+    	List<Long> nkeys = new ArrayList(cacheMinCounts.keySet());
+    	nkeys = nkeys.stream().sorted().collect(Collectors.toList());
+		for (Long time : nkeys) {
+			arrl.put(SDF.format(new Date(time)));
+			arrn.put(cacheMinCounts.get(time)[0]);
+		}
+    	json.getJSONObject("min").put("t", arrl);
+    	json.getJSONObject("min").put("n", arrn);
+    	arrl = new JSONArray();
+    	arrn = new JSONArray();
+    	List<Long> mkeys = new ArrayList(cacheMaxCounts.keySet());
+    	mkeys = mkeys.stream().sorted().collect(Collectors.toList());
+		for (Long time : mkeys) {
+			arrl.put(SDF.format(new Date(time)));
+			arrn.put(cacheMaxCounts.get(time)[0]);
+		}
+		//System.out.println(arrl.toString());
+    	json.getJSONObject("max").put("t", arrl);
+    	json.getJSONObject("max").put("n", arrn);
+    	model.put("result", json.toString());
+        return new ModelAndView("kdjMinCounts");    	
     }
     @GetMapping("/calc")
     public String calc() {
