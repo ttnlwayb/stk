@@ -17,6 +17,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class Application extends SpringBootServletInitializer implements AsyncConfigurer {
 
     public static void main(String[] args) {
+    	System.setProperty("java.awt.headless", "false");
         SpringApplication.run(Application.class, args);
     }
     

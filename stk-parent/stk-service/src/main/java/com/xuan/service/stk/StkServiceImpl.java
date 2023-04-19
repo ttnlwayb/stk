@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.xuan.dialog.DialogUtil;
 import com.xuan.en.MaxCountRecord;
 import com.xuan.en.MinCountRecord;
 import com.xuan.en.Stock;
@@ -190,6 +191,7 @@ public class StkServiceImpl implements StkService {
 			mins[minIdx]++;
 			maxs[maxIdx]++;
 		}
+    	checkShowDialog(mins[0], maxs[0]);
     	saveCountRecord(mins, maxs);
     	return new int[][] {mins, maxs};
 	}
@@ -200,7 +202,33 @@ public class StkServiceImpl implements StkService {
     	asyncService.saveMinCountRecord(mins);
     	asyncService.saveMaxCountRecord(maxs);
 	}
+	private void checkShowDialog(int min, int max) {
+		Thread t = new Thread(() -> {
+			List<String> messages = new ArrayList();
+			if (min < 10) {
+				messages.add("<p color='red'>[MIN][UP]:" + min + "</p>");
+			}
+			if (min > 29) {
+				messages.add("<p color='green'>[MIN][DOWN]:" + min + "</p>");
+			}
+			if (max < 10) {
+				messages.add("<p color='green'>[MAX][DOWN]:" + max + "</p>");
+			}
+			if (max > 29) {
+				messages.add("<p color='red'>[MAX][UP]:" + max + "</p>");
+			}
+			if (messages.isEmpty()) {
+				return;
+			}
+			try {
+				DialogUtil.showDialog("<html>" + String.join("", messages) + "</html>");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+		t.start();
 
+	}
 	@Override
 	public ConcurrentHashMap<Long, int[]> getCacheMinCounts() {
 		return CacheMinCounts;
