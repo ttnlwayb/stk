@@ -32,7 +32,7 @@ public class KdjController {
 	@Autowired
 	private KdjService kdjService;
 	
-	SimpleDateFormat SDF = new SimpleDateFormat ("yyyyMMddhhmm");
+	SimpleDateFormat SDF = new SimpleDateFormat ("yyyyMMddHHmm");
 	SimpleDateFormat SDF1 = new SimpleDateFormat ("yyyyMMdd");
 	String TodayStr = SDF1.format(new Date());
 

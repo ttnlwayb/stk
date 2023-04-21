@@ -42,8 +42,10 @@ public class StkServiceImpl implements StkService {
 	ConcurrentHashMap<String, JSONArray> CacheJSONArray = new ConcurrentHashMap();
 	long _19s = 19 * 1000;
 	long _1day = 60 * 60 * 24 * 1000;
-	SimpleDateFormat SDF = new SimpleDateFormat ("yyyy-MM-dd hh:mm:ss");
+	SimpleDateFormat SDF = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
 	SimpleDateFormat SDF1 = new SimpleDateFormat ("yyyyMMdd");
+	SimpleDateFormat SDF2 = new SimpleDateFormat ("yyyyMMddHHmm");
+
 	String TodayStr = SDF1.format(new Date());
 	//String JsonText = "";
 	@Autowired
@@ -115,6 +117,21 @@ public class StkServiceImpl implements StkService {
 		if (_19s + CacheTime.getOrDefault(cacheKey, 0L) > System.currentTimeMillis()) {
 			return CacheJSONArray.get(cacheKey);
 		}
+		JSONArray array = new JSONArray();
+		for (int i = 0; i < 3; i++) {
+			array = _find(stkCode);
+			JSONObject lastdata = array.getJSONObject(array.length() - 1);
+			if (Long.parseLong(SDF2.format(new Date())) -  lastdata.getLong("t") < 5 ) {
+				break;
+			}
+			//System.out.println("is Cache " + stkCode + ", " + lastdata.getLong("t") + ", " + i);
+			//array = new JSONArray();
+		}
+		CacheTime.put(cacheKey, System.currentTimeMillis());
+		CacheJSONArray.put(cacheKey, array);
+		return array;
+	}
+	public JSONArray _find(String stkCode) {
 		String url = stkUrl + stkCode + "&nocache=" + System.currentTimeMillis();
 		if (stkCode.startsWith("WTX")) {
 			url = wtxUrl + stkCode + "&nocache=" + System.currentTimeMillis();
@@ -126,8 +143,6 @@ public class StkServiceImpl implements StkService {
 		}
 		JSONObject json = new JSONObject(data);
 		JSONArray array = json.getJSONArray("ta");
-		CacheTime.put(cacheKey, System.currentTimeMillis());
-		CacheJSONArray.put(cacheKey, array);
 		return array;
 	}
 	
@@ -165,6 +180,9 @@ public class StkServiceImpl implements StkService {
 			JSONArray array = null;
 			try {
 				array = find(stkCode);
+				if (array.isEmpty()) {
+					continue;
+				}
 			} catch (Exception e) {
 				continue;
 			}
@@ -202,25 +220,34 @@ public class StkServiceImpl implements StkService {
     	asyncService.saveMinCountRecord(mins);
     	asyncService.saveMaxCountRecord(maxs);
 	}
+	private int UP = 24;
+	private int LOW = 10;
+	long DialogTime = 0;
+	long _3m = 3 * 60 * 1000;
 	private void checkShowDialog(int min, int max) {
 		Thread t = new Thread(() -> {
 			List<String> messages = new ArrayList();
-			if (min < 10) {
+			if (min < LOW) {
 				messages.add("<p color='red'>[MIN][UP]:" + min + "</p>");
 			}
-			if (min > 29) {
-				messages.add("<p color='green'>[MIN][DOWN]:" + min + "</p>");
+			if (min > UP) {
+				messages.add("<p color='green'>[MIN][LOW]:" + min + "</p>");
 			}
-			if (max < 10) {
+			if (max < LOW) {
 				messages.add("<p color='green'>[MAX][DOWN]:" + max + "</p>");
 			}
-			if (max > 29) {
-				messages.add("<p color='red'>[MAX][UP]:" + max + "</p>");
+			if (max > UP) {
+				messages.add("<p color='red'>[MAX][LOW]:" + max + "</p>");
 			}
 			if (messages.isEmpty()) {
 				return;
 			}
 			try {
+				long now = System.currentTimeMillis();
+				if ((now - DialogTime) < (_3m)) {
+					return;
+				}
+				DialogTime = now;
 				DialogUtil.showDialog("<html>" + String.join("", messages) + "</html>");
 			} catch (Exception e) {
 				e.printStackTrace();

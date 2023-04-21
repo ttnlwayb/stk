@@ -27,7 +27,7 @@ import com.xuan.service.stk.StkService;
 
 @Component
 public class TodoScheduler {
-	SimpleDateFormat SDF = new SimpleDateFormat ("yyyy-MM-dd hh:mm:ss");
+	SimpleDateFormat SDF = new SimpleDateFormat ("yyyy-MM-dd HH:mm:ss");
 	SimpleDateFormat SDF1 = new SimpleDateFormat ("yyyyMMdd");
     DecimalFormat DF = new DecimalFormat("###,##0.0000");
     DecimalFormat DF1 = new DecimalFormat("###,##0.00");
@@ -56,7 +56,7 @@ public class TodoScheduler {
     	endDate.setSeconds(0);
     	if (endDate.before(new Date())) {
     		System.out.println(SDF.format(new Date()) + " too late");
-    		//return;
+    		return;
     	}
 		int[][] data = stkService.calcMinMaxCount();
 		int[] mins = data[0];
