@@ -2,6 +2,7 @@ package com.xuan.service.stk;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,6 +22,7 @@ import com.xuan.repository.MaxCountRecordRepository;
 import com.xuan.repository.MinCountRecordRepository;
 import com.xuan.repository.StockRepository;
 import com.xuan.service.async.AsyncService;
+import com.xuan.service.log.LogService;
 import com.xuan.service.reptile.Reptile;
 
 @Service
@@ -54,10 +56,18 @@ public class StkServiceImpl implements StkService {
 	@Autowired
 	MaxCountRecordRepository maxCountRecordRepository;
 	
+
+	@Autowired
+	private LogService logService;
+
 	@Autowired
 	StockRepository stockRepository;
 	private ConcurrentHashMap<Long, int[]> CacheMinCounts = new ConcurrentHashMap();
 	private ConcurrentHashMap<Long, int[]> CacheMaxCounts = new ConcurrentHashMap();
+	private ConcurrentHashMap<Long, int[]> _6CacheMinCounts = new ConcurrentHashMap();
+	private ConcurrentHashMap<Long, int[]> _6CacheMaxCounts = new ConcurrentHashMap();
+	private ConcurrentHashMap<Long, int[]> _8CacheMinCounts = new ConcurrentHashMap();
+	private ConcurrentHashMap<Long, int[]> _8CacheMaxCounts = new ConcurrentHashMap();
 	private List<Stock> Stocks = null;
 	@PostConstruct
 	public void init() {
@@ -168,12 +178,18 @@ public class StkServiceImpl implements StkService {
 		return array;
 	}
 
-
-	
 	@Override
 	public int[][] calcMinMaxCount() {
-    	int[] mins = new int[12]; 
-    	int[] maxs = new int[12]; 
+		int size = 6;
+		int[][] res = calcMinMaxCount(6);
+		res = calcMinMaxCount(8);
+		res = calcMinMaxCount(12);
+		return res;
+	}
+	
+	private int[][] calcMinMaxCount(int size) {
+    	int[] mins = new int[size]; 
+    	int[] maxs = new int[size]; 
 		for (Stock stock : Stocks) {
 			String stkCode = stock.getStkCode();
 			String stkName = stock.getName();
@@ -186,7 +202,7 @@ public class StkServiceImpl implements StkService {
 			} catch (Exception e) {
 				continue;
 			}
-			int count = 12;
+			int count = size;
 			List<Double> doubleList = new ArrayList();
 			for (int i = array.length() - 1; i > 0 && count > 0; i--) {
 				if (!("" + array.getJSONObject(i).getLong("t")).startsWith(TodayStr)) {
@@ -210,10 +226,30 @@ public class StkServiceImpl implements StkService {
 			maxs[maxIdx]++;
 		}
     	checkShowDialog(mins[0], maxs[0]);
-    	saveCountRecord(mins, maxs);
+		switch (size) {
+			case 6:
+				_6saveCountRecord(mins, maxs);
+			break;
+			case 8:
+				_8saveCountRecord(mins, maxs);
+			break;
+			default:
+				saveCountRecord(mins, maxs);
+		}
+    	int minSum = Arrays.stream(mins).sum();
+    	int maxSum = Arrays.stream(maxs).sum();
+		logService.info("" + size + ": " + minSum + "[mins]: " + Arrays.toString(mins));
+		logService.warn("" + size + ": " + maxSum + "[maxs]: " + Arrays.toString(maxs));
     	return new int[][] {mins, maxs};
 	}
-	
+	private void _6saveCountRecord(int[] mins, int[] maxs) {
+    	_6CacheMinCounts.put(System.currentTimeMillis(), mins);
+    	_6CacheMaxCounts.put(System.currentTimeMillis(), maxs);
+	}
+	private void _8saveCountRecord(int[] mins, int[] maxs) {
+		_8CacheMinCounts.put(System.currentTimeMillis(), mins);
+		_8CacheMaxCounts.put(System.currentTimeMillis(), maxs);
+	}
 	private void saveCountRecord(int[] mins, int[] maxs) {
     	CacheMinCounts.put(System.currentTimeMillis(), mins);
     	CacheMaxCounts.put(System.currentTimeMillis(), maxs);
@@ -253,7 +289,7 @@ public class StkServiceImpl implements StkService {
 				e.printStackTrace();
 			}
 		});
-		t.start();
+		//t.start();
 
 	}
 	@Override
@@ -264,6 +300,25 @@ public class StkServiceImpl implements StkService {
 	public ConcurrentHashMap<Long, int[]> getCacheMaxCounts() {
 		return CacheMaxCounts;
 	}
+	
+	@Override
+	public ConcurrentHashMap<Long, int[]> get6CacheMinCounts() {
+		return _6CacheMinCounts;
+	}
+	@Override
+	public ConcurrentHashMap<Long, int[]> get6CacheMaxCounts() {
+		return _6CacheMaxCounts;
+	}
+	
+	@Override
+	public ConcurrentHashMap<Long, int[]> get8CacheMinCounts() {
+		return _8CacheMinCounts;
+	}
+	@Override
+	public ConcurrentHashMap<Long, int[]> get8CacheMaxCounts() {
+		return _8CacheMaxCounts;
+	}
+
 	public List<Stock> getStocks() {
 		return Stocks;
 	}

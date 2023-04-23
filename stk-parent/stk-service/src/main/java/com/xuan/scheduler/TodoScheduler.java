@@ -36,8 +36,6 @@ public class TodoScheduler {
 	String TodayTimeStr = SDF.format(new Date());
 
 	@Autowired
-	private LogService logService;
-	@Autowired
 	private StkService stkService;
 
     @Scheduled(initialDelay = 1000, fixedRate = 29 * 1000)
@@ -59,11 +57,5 @@ public class TodoScheduler {
     		return;
     	}
 		int[][] data = stkService.calcMinMaxCount();
-		int[] mins = data[0];
-		int[] maxs = data[1];
-    	int minSum = Arrays.stream(mins).sum();
-    	int maxSum = Arrays.stream(maxs).sum();
-		logService.info("" + minSum + "[mins]: " + Arrays.toString(mins));
-		logService.warn("" + maxSum + "[maxs]: " + Arrays.toString(maxs));
     }
 }

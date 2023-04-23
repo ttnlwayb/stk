@@ -6,14 +6,10 @@
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>Stk 0050 Table</title>
 </head>
-<body>
-	<h1 class="color-red"></h1>
-</body>
 <link rel="stylesheet"
 	href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/fixed-header-table/1.3.0/jquery.fixedheadertable.min.js"></script>
 <link type="text/css" rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css"/>
 <script src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
 <style>
@@ -21,9 +17,15 @@ td {
 	white-space: nowrap;
 	width: 178px;
 }
-
+#mainDiv{
+}
+#lab0{
+    position: relative;
+    left: 40%;
+    transform: translate(-50%,-50%)
+}
 </style>
-<div id='mainDiv' style='width: 98%;position: absolute'></div>
+<div id='mainDiv' style='width:98%'></div>
 <div id='tmpDiv' style='display: none'>
 	<label id='lab' style='font-size:20px' ><label>
 			<table id="table">
@@ -47,10 +49,13 @@ td {
 		var cloneLab = $('#lab').clone(true);
 		cloneLab.attr('id', 'lab' + index);
 		cloneLab.html(
-				'<br/>ma1: ' + result.ma.ma1 +
-				'<br/>ma5: ' + result.ma.ma5 +
-				'<br/>ma20: ' + result.ma.ma20 +
-				'<br/>ma60: ' + result.ma.ma60
+				[
+					'ma1: ' + result.ma.ma1,
+					'ma5: ' + result.ma.ma5,
+					'ma20: ' + result.ma.ma20,
+					'ma60: ' + result.ma.ma60,
+				].join('<br/>')
+
 		);
 		cloneLab.appendTo('#mainDiv');
 		var cloneTable = $("#table").clone(true);
