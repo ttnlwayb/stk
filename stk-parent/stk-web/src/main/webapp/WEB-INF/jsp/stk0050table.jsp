@@ -79,6 +79,7 @@ td {
 		});*/
 		$('#table' + index).DataTable({
 			searching : false,
+			//stripeClasses: ["odd", "even"],
 			fixedHeader: true,
 			scrollY: '1000px',
 			paging : false,
@@ -86,35 +87,37 @@ td {
 			rowCallback : RowCallBack,
 			data : rows
 		});
+		 $('#table' + index).DataTable().$("tr:even").css("background-color", "#DCDCDC");
+
+
 	}
 	function RowCallBack(row, data, index) {
-	    if (index % 2 == 0) { $(row).css('background-color', '#DCDCDC'); }
+	    //if (index % 2 == 0) { $(row).css('background-color', '#DCDCDC'); }
 	    let tmp = [...data];
 	    var minIdx = 1;
 	    var maxIdx = 2;
-	    if (data[minIdx] + data[maxIdx] > 43) {
-	    	return;
-	    }
-	    if (data[minIdx] < 10) {
-		    $('td', row).eq(minIdx).css('font-weight', "bold").css("background-color", "red");
-	    }
-	    if (data[minIdx] > 24) {
-		    $('td', row).eq(minIdx).css('font-weight', "bold").css("background-color", "green");
-	    }
-	    if (data[maxIdx] < 10) {
-		    $('td', row).eq(maxIdx).css('font-weight', "bold").css("background-color", "green");
-	    }
-	    if (data[maxIdx] > 24) {
-		    $('td', row).eq(maxIdx).css('font-weight', "bold").css("background-color", "red");
+	    if (data[minIdx] + data[maxIdx] < 60) {
+		    if (data[minIdx] < 10) {
+			    $('td', row).eq(minIdx).css('font-weight', "bold").css("background-color", "red");
+		    }
+		    if (data[minIdx] > 24) {
+			    $('td', row).eq(minIdx).css('font-weight', "bold").css("background-color", "green");
+		    }
+		    if (data[maxIdx] < 10) {
+			    $('td', row).eq(maxIdx).css('font-weight', "bold").css("background-color", "green");
+		    }
+		    if (data[maxIdx] > 24) {
+			    $('td', row).eq(maxIdx).css('font-weight', "bold").css("background-color", "red");
+		    }
 	    }
 	}
-
+	var waittime = 29 * 1000;
 	function timeout() {
 		var date = new Date();
 		if (date.getHours() < 13) {
-			setTimeout(() => location.reload(), waittime * 1000);
+			setTimeout(() => location.reload(), waittime);
 		} else if (date.getHours() == 13 &&　date.getMinutes() < 25) {
-			setTimeout(() => location.reload(), waittime * 1000);
+			setTimeout(() => location.reload(), waittime);
 		}
 	}
 
