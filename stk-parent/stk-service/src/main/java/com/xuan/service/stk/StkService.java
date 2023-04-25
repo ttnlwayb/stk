@@ -17,7 +17,5 @@ public interface StkService {
 
 	ConcurrentHashMap<Long, int[]> get6CacheMinCounts();
 	ConcurrentHashMap<Long, int[]> get6CacheMaxCounts();
-	
-	ConcurrentHashMap<Long, int[]> get8CacheMinCounts();
-	ConcurrentHashMap<Long, int[]> get8CacheMaxCounts();
+
 }

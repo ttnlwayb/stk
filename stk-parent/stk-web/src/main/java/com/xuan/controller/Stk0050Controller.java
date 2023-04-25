@@ -42,10 +42,6 @@ public class Stk0050Controller {
 				cacheMinCounts = stkService.get6CacheMinCounts();
 				cacheMaxCounts = stkService.get6CacheMaxCounts();
 				break;
-			case 8:
-				cacheMinCounts = stkService.get8CacheMinCounts();
-				cacheMaxCounts = stkService.get8CacheMaxCounts();
-				break;
 			default:
 				cacheMinCounts = stkService.getCacheMinCounts();
 				cacheMaxCounts = stkService.getCacheMaxCounts();

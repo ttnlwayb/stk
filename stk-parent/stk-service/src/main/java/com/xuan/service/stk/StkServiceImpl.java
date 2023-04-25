@@ -66,8 +66,6 @@ public class StkServiceImpl implements StkService {
 	private ConcurrentHashMap<Long, int[]> CacheMaxCounts = new ConcurrentHashMap();
 	private ConcurrentHashMap<Long, int[]> _6CacheMinCounts = new ConcurrentHashMap();
 	private ConcurrentHashMap<Long, int[]> _6CacheMaxCounts = new ConcurrentHashMap();
-	private ConcurrentHashMap<Long, int[]> _8CacheMinCounts = new ConcurrentHashMap();
-	private ConcurrentHashMap<Long, int[]> _8CacheMaxCounts = new ConcurrentHashMap();
 	private List<Stock> Stocks = null;
 	@PostConstruct
 	public void init() {
@@ -180,9 +178,7 @@ public class StkServiceImpl implements StkService {
 
 	@Override
 	public int[][] calcMinMaxCount() {
-		int size = 6;
 		int[][] res = calcMinMaxCount(6);
-		res = calcMinMaxCount(8);
 		res = calcMinMaxCount(12);
 		return res;
 	}
@@ -230,9 +226,6 @@ public class StkServiceImpl implements StkService {
 			case 6:
 				_6saveCountRecord(mins, maxs);
 			break;
-			case 8:
-				_8saveCountRecord(mins, maxs);
-			break;
 			default:
 				saveCountRecord(mins, maxs);
 		}
@@ -245,10 +238,6 @@ public class StkServiceImpl implements StkService {
 	private void _6saveCountRecord(int[] mins, int[] maxs) {
     	_6CacheMinCounts.put(System.currentTimeMillis(), mins);
     	_6CacheMaxCounts.put(System.currentTimeMillis(), maxs);
-	}
-	private void _8saveCountRecord(int[] mins, int[] maxs) {
-		_8CacheMinCounts.put(System.currentTimeMillis(), mins);
-		_8CacheMaxCounts.put(System.currentTimeMillis(), maxs);
 	}
 	private void saveCountRecord(int[] mins, int[] maxs) {
     	CacheMinCounts.put(System.currentTimeMillis(), mins);
@@ -308,15 +297,6 @@ public class StkServiceImpl implements StkService {
 	@Override
 	public ConcurrentHashMap<Long, int[]> get6CacheMaxCounts() {
 		return _6CacheMaxCounts;
-	}
-	
-	@Override
-	public ConcurrentHashMap<Long, int[]> get8CacheMinCounts() {
-		return _8CacheMinCounts;
-	}
-	@Override
-	public ConcurrentHashMap<Long, int[]> get8CacheMaxCounts() {
-		return _8CacheMaxCounts;
 	}
 
 	public List<Stock> getStocks() {
