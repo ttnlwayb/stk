@@ -34,7 +34,7 @@ td {
 						<th id='th1'>min time</th>
 						<th>min value</th>
 						<th>max time</th>
-						<th>max value</th>
+						<th>diff</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -54,6 +54,7 @@ td {
 					'ma5: ' + result.ma.ma5,
 					'ma20: ' + result.ma.ma20,
 					'ma60: ' + result.ma.ma60,
+					'ma5-ma1: '+ (result.ma.ma5 - result.ma.ma1)
 				].join('<br/>')
 
 		);
@@ -68,7 +69,7 @@ td {
 			row[0] = result.min.t[i];
 			row[1] = result.min.n[i];
 			row[2] = result.max.n[i];
-			row[3] = result.max.t[i];
+			row[3] = row[2] - row[1];
 			rows[i] = row;
 		}
 
@@ -91,11 +92,14 @@ td {
 
 
 	}
+	var up = 0;
+	var low = 0;
 	function RowCallBack(row, data, index) {
 	    //if (index % 2 == 0) { $(row).css('background-color', '#DCDCDC'); }
 	    let tmp = [...data];
 	    var minIdx = 1;
 	    var maxIdx = 2;
+	    var diffIdx = 3;
 	    if (data[minIdx] + data[maxIdx] < 60) {
 		    if (data[minIdx] < 10) {
 			    $('td', row).eq(minIdx).css('font-weight', "bold").css("background-color", "red");
@@ -108,6 +112,14 @@ td {
 		    }
 		    if (data[maxIdx] > 24) {
 			    $('td', row).eq(maxIdx).css('font-weight', "bold").css("background-color", "red");
+		    }
+		    if (data[diffIdx] < -25) {
+		    	low++;
+		    	$('td', row).eq(diffIdx).css('font-weight', "bold").css("background-color", "green");
+		    }
+		    if (data[diffIdx] > 25) {
+		    	up++;
+		    	$('td', row).eq(diffIdx).css('font-weight', "bold").css("background-color", "red");
 		    }
 	    }
 	}
@@ -126,6 +138,8 @@ td {
 		initData();
 		$('#th1').click();
 		timeout();
+		console.log('up' + up);
+		console.log('low' + low);
 	});
 
 
