@@ -209,9 +209,9 @@ $(document).ready(function() {
 	var date = new Date();
 	console.log('ready time' + date);
 	if (date.getHours() < 13) {
-		setTimeout(() => location.reload(), waittime * 1000);
+		setTimeout(() => location.reload(), waittime);
 	} else if (date.getHours() == 13 &&¡@date.getMinutes() < 25) {
-		setTimeout(() => location.reload(), waittime * 1000);
+		setTimeout(() => location.reload(), waittime);
 	}
 });
 </script>
